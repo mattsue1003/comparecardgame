@@ -1,0 +1,124 @@
+import React, { useState, useEffect } from 'react';
+
+const CardComparisonGame = () => {
+  const [gameActive, setGameActive] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(40);
+  const [score, setScore] = useState(0);
+  const [cards, setCards] = useState([
+    { value: 0, color: 'bg-red-500' },
+    { value: 0, color: 'bg-blue-500' }
+  ]);
+  const [gameOver, setGameOver] = useState(false);
+
+  // 生成新的卡片
+  const generateNewCards = () => {
+    const newCards = [
+      { value: Math.floor(Math.random() * 100) + 1, color: 'bg-red-500' },
+      { value: Math.floor(Math.random() * 100) + 1, color: 'bg-blue-500' }
+    ];
+    
+    // 確保兩張卡片的值不同
+    while (newCards[0].value === newCards[1].value) {
+      newCards[1].value = Math.floor(Math.random() * 100) + 1;
+    }
+    
+    setCards(newCards);
+  };
+
+  // 開始遊戲
+  const startGame = () => {
+    setGameActive(true);
+    setTimeLeft(40);
+    setScore(0);
+    setGameOver(false);
+    generateNewCards();
+  };
+
+  // 處理卡片選擇
+  const handleCardClick = (index) => {
+    if (!gameActive) return;
+    
+    const card1Value = cards[0].value;
+    const card2Value = cards[1].value;
+    
+    // 判斷是否選擇了較大的卡片
+    if ((index === 0 && card1Value > card2Value) || 
+        (index === 1 && card2Value > card1Value)) {
+      setScore(score + 1);
+    }
+    
+    generateNewCards();
+  };
+
+  // 計時器
+  useEffect(() => {
+    let timer;
+    if (gameActive && timeLeft > 0) {
+      timer = setTimeout(() => {
+        setTimeLeft(timeLeft - 1);
+      }, 1000);
+    } else if (timeLeft === 0 && gameActive) {
+      setGameActive(false);
+      setGameOver(true);
+    }
+    
+    return () => clearTimeout(timer);
+  }, [gameActive, timeLeft]);
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
+      <h1 className="text-3xl font-bold mb-6">卡片比大小遊戲</h1>
+      
+      <div className="mb-6 text-center">
+        <p className="text-xl mb-2">剩餘時間: <span className="font-bold">{timeLeft}</span> 秒</p>
+        <p className="text-xl">得分: <span className="font-bold">{score}</span></p>
+      </div>
+      
+      {!gameActive && !gameOver && (
+        <div className="text-center mb-6">
+          <p className="mb-4 text-lg">點擊較大數值的卡片，看你能在40秒內獲得多少分！</p>
+          <button 
+            onClick={startGame}
+            className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-lg text-lg transition-colors"
+          >
+            開始遊戲
+          </button>
+        </div>
+      )}
+      
+      {gameActive && (
+        <div className="flex justify-center items-center space-x-8 mb-8">
+          {cards.map((card, index) => (
+            <div 
+              key={index}
+              onClick={() => handleCardClick(index)}
+              className={`${card.color} w-48 h-64 rounded-xl flex items-center justify-center cursor-pointer transform hover:scale-105 transition-transform shadow-lg`}
+            >
+              <span className="text-white text-5xl font-bold">{card.value}</span>
+            </div>
+          ))}
+        </div>
+      )}
+      
+      {gameOver && (
+        <div className="text-center mb-6">
+          <h2 className="text-2xl font-bold mb-4">遊戲結束！</h2>
+          <p className="text-xl mb-4">你的最終得分是: <span className="font-bold text-2xl">{score}</span></p>
+          <button 
+            onClick={startGame}
+            className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg text-lg transition-colors"
+          >
+            再玩一次
+          </button>
+        </div>
+      )}
+      
+      <div className="mt-6 text-gray-600">
+        <p>遊戲規則：選擇兩張卡片中數值較大的一張。每答對一題得1分。</p>
+        <p>時間限制：40秒</p>
+      </div>
+    </div>
+  );
+};
+
+export default CardComparisonGame;
