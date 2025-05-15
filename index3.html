@@ -1,292 +1,124 @@
-<!DOCTYPE html>
-<html lang="zh-TW">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>卡片比大小遊戲</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Arial', sans-serif;
-        }
-        
-        body {
-            background-color: #f3f4f6;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem;
-        }
-        
-        .container {
-            width: 100%;
-            max-width: 800px;
-            text-align: center;
-        }
-        
-        h1 {
-            font-size: 2rem;
-            font-weight: bold;
-            margin-bottom: 1.5rem;
-            color: #111827;
-        }
-        
-        .stats {
-            margin-bottom: 1.5rem;
-            font-size: 1.25rem;
-        }
-        
-        .bold {
-            font-weight: bold;
-        }
-        
-        .start-screen {
-            margin-bottom: 1.5rem;
-        }
-        
-        .instruction {
-            margin-bottom: 1rem;
-            font-size: 1.125rem;
-        }
-        
-        .btn {
-            padding: 0.5rem 1.5rem;
-            font-size: 1.125rem;
-            font-weight: bold;
-            border: none;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        
-        .btn-start {
-            background-color: #10b981;
-            color: white;
-        }
-        
-        .btn-start:hover {
-            background-color: #059669;
-        }
-        
-        .btn-replay {
-            background-color: #3b82f6;
-            color: white;
-        }
-        
-        .btn-replay:hover {
-            background-color: #2563eb;
-        }
-        
-        .cards-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 2rem;
-            margin-bottom: 2rem;
-        }
-        
-        .card {
-            width: 12rem;
-            height: 16rem;
-            border-radius: 0.75rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transform: scale(1);
-            transition: transform 0.3s;
-        }
-        
-        .card:hover {
-            transform: scale(1.05);
-        }
-        
-        .card-red {
-            background-color: #ef4444;
-        }
-        
-        .card-blue {
-            background-color: #3b82f6;
-        }
-        
-        .card-value {
-            color: white;
-            font-size: 3rem;
-            font-weight: bold;
-        }
-        
-        .game-over {
-            margin-bottom: 1.5rem;
-        }
-        
-        .game-over-title {
-            font-size: 1.5rem;
-            font-weight: bold;
-            margin-bottom: 1rem;
-        }
-        
-        .final-score {
-            font-size: 1.25rem;
-            margin-bottom: 1rem;
-        }
-        
-        .final-score-value {
-            font-size: 1.5rem;
-            font-weight: bold;
-        }
-        
-        .rules {
-            margin-top: 1.5rem;
-            color: #6b7280;
-        }
-        
-        .hidden {
-            display: none;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>卡片比大小遊戲</h1>
-        
-        <div class="stats">
-            <p class="time">剩餘時間: <span class="bold" id="time-left">40</span> 秒</p>
-            <p class="score">得分: <span class="bold" id="score">0</span></p>
+import React, { useState, useEffect } from 'react';
+
+const CardComparisonGame = () => {
+  const [gameActive, setGameActive] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(40);
+  const [score, setScore] = useState(0);
+  const [cards, setCards] = useState([
+    { value: 0, color: 'bg-red-500' },
+    { value: 0, color: 'bg-blue-500' }
+  ]);
+  const [gameOver, setGameOver] = useState(false);
+
+  // 生成新的卡片
+  const generateNewCards = () => {
+    const newCards = [
+      { value: Math.floor(Math.random() * 100) + 1, color: 'bg-red-500' },
+      { value: Math.floor(Math.random() * 100) + 1, color: 'bg-blue-500' }
+    ];
+    
+    // 確保兩張卡片的值不同
+    while (newCards[0].value === newCards[1].value) {
+      newCards[1].value = Math.floor(Math.random() * 100) + 1;
+    }
+    
+    setCards(newCards);
+  };
+
+  // 開始遊戲
+  const startGame = () => {
+    setGameActive(true);
+    setTimeLeft(40);
+    setScore(0);
+    setGameOver(false);
+    generateNewCards();
+  };
+
+  // 處理卡片選擇
+  const handleCardClick = (index) => {
+    if (!gameActive) return;
+    
+    const card1Value = cards[0].value;
+    const card2Value = cards[1].value;
+    
+    // 判斷是否選擇了較大的卡片
+    if ((index === 0 && card1Value > card2Value) || 
+        (index === 1 && card2Value > card1Value)) {
+      setScore(score + 1);
+    }
+    
+    generateNewCards();
+  };
+
+  // 計時器
+  useEffect(() => {
+    let timer;
+    if (gameActive && timeLeft > 0) {
+      timer = setTimeout(() => {
+        setTimeLeft(timeLeft - 1);
+      }, 1000);
+    } else if (timeLeft === 0 && gameActive) {
+      setGameActive(false);
+      setGameOver(true);
+    }
+    
+    return () => clearTimeout(timer);
+  }, [gameActive, timeLeft]);
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
+      <h1 className="text-3xl font-bold mb-6">卡片比大小遊戲</h1>
+      
+      <div className="mb-6 text-center">
+        <p className="text-xl mb-2">剩餘時間: <span className="font-bold">{timeLeft}</span> 秒</p>
+        <p className="text-xl">得分: <span className="font-bold">{score}</span></p>
+      </div>
+      
+      {!gameActive && !gameOver && (
+        <div className="text-center mb-6">
+          <p className="mb-4 text-lg">點擊較大數值的卡片，看你能在40秒內獲得多少分！</p>
+          <button 
+            onClick={startGame}
+            className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-lg text-lg transition-colors"
+          >
+            開始遊戲
+          </button>
         </div>
-        
-        <div class="start-screen" id="start-screen">
-            <p class="instruction">點擊較大數值的卡片，看你能在40秒內獲得多少分！</p>
-            <button class="btn btn-start" id="start-btn">開始遊戲</button>
-        </div>
-        
-        <div class="cards-container hidden" id="cards-container">
-            <div class="card card-red" id="card-0">
-                <span class="card-value" id="card-value-0">0</span>
+      )}
+      
+      {gameActive && (
+        <div className="flex justify-center items-center space-x-8 mb-8">
+          {cards.map((card, index) => (
+            <div 
+              key={index}
+              onClick={() => handleCardClick(index)}
+              className={`${card.color} w-48 h-64 rounded-xl flex items-center justify-center cursor-pointer transform hover:scale-105 transition-transform shadow-lg`}
+            >
+              <span className="text-white text-5xl font-bold">{card.value}</span>
             </div>
-            <div class="card card-blue" id="card-1">
-                <span class="card-value" id="card-value-1">0</span>
-            </div>
+          ))}
         </div>
-        
-        <div class="game-over hidden" id="game-over-screen">
-            <h2 class="game-over-title">遊戲結束！</h2>
-            <p class="final-score">你的最終得分是: <span class="final-score-value" id="final-score">0</span></p>
-            <button class="btn btn-replay" id="replay-btn">再玩一次</button>
+      )}
+      
+      {gameOver && (
+        <div className="text-center mb-6">
+          <h2 className="text-2xl font-bold mb-4">遊戲結束！</h2>
+          <p className="text-xl mb-4">你的最終得分是: <span className="font-bold text-2xl">{score}</span></p>
+          <button 
+            onClick={startGame}
+            className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg text-lg transition-colors"
+          >
+            再玩一次
+          </button>
         </div>
-        
-        <div class="rules">
-            <p>遊戲規則：選擇兩張卡片中數值較大的一張。每答對一題得1分。</p>
-            <p>時間限制：40秒</p>
-        </div>
+      )}
+      
+      <div className="mt-6 text-gray-600">
+        <p>遊戲規則：選擇兩張卡片中數值較大的一張。每答對一題得1分。</p>
+        <p>時間限制：40秒</p>
+      </div>
     </div>
+  );
+};
 
-    <script>
-        // DOM 元素
-        const startScreen = document.getElementById('start-screen');
-        const gameOverScreen = document.getElementById('game-over-screen');
-        const cardsContainer = document.getElementById('cards-container');
-        const startBtn = document.getElementById('start-btn');
-        const replayBtn = document.getElementById('replay-btn');
-        const timeLeftElement = document.getElementById('time-left');
-        const scoreElement = document.getElementById('score');
-        const finalScoreElement = document.getElementById('final-score');
-        const card0 = document.getElementById('card-0');
-        const card1 = document.getElementById('card-1');
-        const cardValue0 = document.getElementById('card-value-0');
-        const cardValue1 = document.getElementById('card-value-1');
-
-        // 遊戲狀態
-        let gameActive = false;
-        let timeLeft = 40;
-        let score = 0;
-        let timer;
-        let cards = [
-            { value: 0 },
-            { value: 0 }
-        ];
-
-        // 生成新的卡片，確保兩張卡片數值不同
-        function generateNewCards() {
-            cards[0].value = Math.floor(Math.random() * 100) + 1;
-            cards[1].value = Math.floor(Math.random() * 100) + 1;
-            
-            // 確保兩張卡片的值不同
-            while (cards[0].value === cards[1].value) {
-                cards[1].value = Math.floor(Math.random() * 100) + 1;
-            }
-            
-            cardValue0.textContent = cards[0].value;
-            cardValue1.textContent = cards[1].value;
-        }
-
-        // 開始遊戲
-        function startGame() {
-            gameActive = true;
-            timeLeft = 40;
-            score = 0;
-            
-            // 更新UI
-            timeLeftElement.textContent = timeLeft;
-            scoreElement.textContent = score;
-            startScreen.classList.add('hidden');
-            gameOverScreen.classList.add('hidden');
-            cardsContainer.classList.remove('hidden');
-            
-            generateNewCards();
-            startTimer();
-        }
-
-        // 結束遊戲
-        function endGame() {
-            gameActive = false;
-            clearTimeout(timer);
-            
-            // 更新UI
-            finalScoreElement.textContent = score;
-            cardsContainer.classList.add('hidden');
-            gameOverScreen.classList.remove('hidden');
-        }
-
-        // 計時器
-        function startTimer() {
-            if (timeLeft > 0 && gameActive) {
-                timer = setTimeout(() => {
-                    timeLeft--;
-                    timeLeftElement.textContent = timeLeft;
-                    startTimer();
-                }, 1000);
-            } else if (timeLeft === 0 && gameActive) {
-                endGame();
-            }
-        }
-
-        // 處理卡片選擇
-        function handleCardClick(index) {
-            if (!gameActive) return;
-            
-            const card1Value = cards[0].value;
-            const card2Value = cards[1].value;
-            
-            // 判斷是否選擇了較大的卡片
-            if ((index === 0 && card1Value > card2Value) || 
-                (index === 1 && card2Value > card1Value)) {
-                score++;
-                scoreElement.textContent = score;
-            }
-            
-            generateNewCards();
-        }
-
-        // 事件監聽器
-        startBtn.addEventListener('click', startGame);
-        replayBtn.addEventListener('click', startGame);
-        card0.addEventListener('click', () => handleCardClick(0));
-        card1.addEventListener('click', () => handleCardClick(1));
-    </script>
-</body>
-</html>
+export default CardComparisonGame;
